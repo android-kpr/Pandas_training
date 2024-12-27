@@ -28,7 +28,8 @@ class OutFile(File):
         super().__init__(out_file_name)
 
     def put_dfr_to_file(self, dfr):
-        dfr.to_excel(self.filename, index=False)
+        dfr_to_file = dfr.copy(deep=True)
+        dfr_to_file.to_excel(self.filename, index=False)
 
 
 class DataFrame:
@@ -63,6 +64,7 @@ class OutDataFrame(DataFrame):
         dfr_begin = self.data_frame.drop(labels=['Input field', 'Value'], axis="columns").copy(deep=True)
         dfr_begin.drop_duplicates(subset=["MSISDN", "Case ID"], inplace=True)
         case_ids = dfr_begin['Case ID'].values.tolist()
+        dfr_begin.reset_index(inplace=True)
 
         dfr_end = pd.concat([self.data_frame['Case ID'], self.data_frame['Input field'], self.data_frame['Value']], axis=1)
         dfr_end.set_index(keys="Case ID", inplace=True)
@@ -72,8 +74,9 @@ class OutDataFrame(DataFrame):
             lst_mod_ends.append(dfr_end.loc[case_ids[i]]["Value"].values)
         dfr_ends_mod = pd.DataFrame(columns=columns_mod, data=lst_mod_ends)
 
-        dfr_begin.reset_index(inplace=True)
+        # dfr_begin.reset_index(inplace=True)
         self.data_frame = pd.concat(objs=[dfr_begin, dfr_ends_mod], axis=1)
+        self.data_frame.set_index(keys="index", inplace=True)
 
         return 0
 
